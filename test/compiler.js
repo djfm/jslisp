@@ -101,4 +101,8 @@ describe('The compiler', function () {
         )`;
         jslisp.evaluate(src).should.equal(3);
     });
+
+    it('should not allow shadowing a variable', function () {
+        chai.expect(() => {jslisp.compile(`(let x 4 (let x 5))`);}).to.throw();
+    });
 });
