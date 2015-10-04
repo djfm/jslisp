@@ -15,7 +15,7 @@ function compileDeclaration (ast, context) {
     let i = 1, len = ast.length, toReturn;
     for (; i < len - 1; i+=2) {
         toReturn = ast[i];
-        context.describe(toReturn, 'symbol');
+        context.tokenType(toReturn, 'symbol');
         decls.push(`    var ${toReturn} = ${compileRValue(ast[i+1], context)};`);
     }
 
@@ -40,7 +40,7 @@ function compileBinaryOperation (ast, context) {
 function compileLambda (ast, context) {
     const rawArgs = ast.slice(1, ast.length - 1);
     rawArgs.forEach(arg => {
-        context.describe(arg, 'symbol');
+        context.tokenType(arg, 'symbol');
     });
     const args = rawArgs.join(', ');
 return `(function (${args}) {
@@ -53,7 +53,7 @@ function compileIf (ast, context) {
 }
 
 function compileToken (token, context) {
-    if (context.describe(token) === 'symbol') {
+    if (context.tokenType(token) === 'symbol') {
         return token;
     } if (/\d+/.exec(token)) {
         return token;
