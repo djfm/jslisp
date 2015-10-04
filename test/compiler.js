@@ -102,7 +102,11 @@ describe('The compiler', function () {
         jslisp.evaluate(src).should.equal(3);
     });
 
-    it('should not allow shadowing a variable', function () {
+    it('should not allow shadowing a variable - nested declarations', function () {
         chai.expect(() => {jslisp.compile(`(let x 4 (let x 5))`);}).to.throw();
+    });
+
+    it('should not allow shadowing a variable - same declaration', function () {
+        chai.expect(() => {jslisp.compile(`(let x 4 x 5)`);}).to.throw();
     });
 });
