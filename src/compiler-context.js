@@ -1,5 +1,6 @@
 export default class CompilerContext {
-    constructor () {
+    constructor (parentContext) {
+        this._parentContext = parentContext;
         this._symbols = {};
     }
 
@@ -11,7 +12,11 @@ export default class CompilerContext {
             this._symbols[symbol] = type;
             return this;
         } else {
-            return this._symbols[symbol];
+            return this._symbols[symbol] || (this._parentContext ? this._parentContext.describe(symbol) : undefined);
         }
+    }
+
+    newScope () {
+        return new CompilerContext(this);
     }
 }

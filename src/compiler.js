@@ -34,7 +34,7 @@ function compileBinaryOperation (ast, context) {
     const operator = {
         '=': '==='
     }[ast[0]] || ast[0];
-    return `(${compileAST(ast[1], context)} ${operator} ${compileAST(ast[2], context)})`;
+    return `(${compileAST(ast[1], context.newScope())} ${operator} ${compileAST(ast[2], context.newScope())})`;
 }
 
 function compileLambda (ast, context) {

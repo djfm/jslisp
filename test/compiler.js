@@ -109,4 +109,12 @@ describe('The compiler', function () {
     it('should not allow shadowing a variable - same declaration', function () {
         chai.expect(() => {jslisp.compile(`(let x 4 x 5)`);}).to.throw();
     });
+
+    it('but variables with the same name may exist in different scopes - binary operators', function () {
+        jslisp.evaluate(`(+ (let x 4) (let x 5))`).should.equal(9);
+    });
+
+    it('but variables with the same name may exist in different scopes - applications', function () {
+        jslisp.evaluate(`(let (+ (let x 4) (let x 5)))`).should.equal(9);
+    });
 });
