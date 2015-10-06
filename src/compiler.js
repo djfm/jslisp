@@ -84,6 +84,8 @@ export default function compileAST (ast, context) {
         case '=':
         case '+':
         case '-':
+        case '*':
+        case '/':
             return compileBinaryOperation(ast, context);
         case 'true':
             return head;
