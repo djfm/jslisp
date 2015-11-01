@@ -12,11 +12,19 @@ function compileRValue (ast, context) {
 
 function compileDeclaration (ast, context) {
     const decls = [];
-    let i = 1, len = ast.length, toReturn;
+    let i = 1, len = ast.length, toReturn, varName;
     for (; i < len - 1; i+=2) {
-        toReturn = ast[i];
+        varName = toReturn = ast[i];
         context.tokenType(toReturn, 'symbol');
-        decls.push(`    var ${toReturn} = ${compileRValue(ast[i+1], context)};`);
+        const rhs = compileRValue(ast[i+1], context);
+        if (rhs.symbolType) {
+            context.symbolType(toReturn, rhs.symbolType);
+        }
+        if (rhs.symbolType === 'macro') {
+            context.compileTimeDefine(varName, rhs.compiled);
+        } else {
+            decls.push(`    var ${varName} = ${rhs};`);
+        }
     }
 
     if (i < len) {
@@ -48,6 +56,19 @@ return `(function (${args}) {
 })`;
 }
 
+function compileMacro (ast, context) {
+    var src = compileLambda(ast, context);
+    const code = {
+        str: src,
+        toString () {
+            return this.str;
+        },
+        symbolType: 'macro',
+        compiled: src
+    };
+    return code;
+}
+
 function compileIf (ast, context) {
     return `(${compileAST(ast[1], context)} ? ${compileAST(ast[2], context)} : ${compileAST(ast[3], context)})`;
 }
@@ -66,7 +87,13 @@ function compileApplication (ast, context) {
     const args = ast.slice(1).map(arg => {
         return compileAST(arg, context);
     }).join(', ');
-    return `${ast[0]}(${args})`;
+
+    if (context.symbolType(ast[0]) === 'macro') {
+        return context.evalMacro(ast[0]);
+    } else {
+        const app = compileAST(ast[0], context);
+        return `${app}(${args})`;
+    }
 }
 
 export default function compileAST (ast, context) {
@@ -81,6 +108,8 @@ export default function compileAST (ast, context) {
             return compileDeclaration(ast, context);
         case 'lambda':
             return compileLambda(ast, context);
+        case 'macro':
+            return compileMacro(ast, context);
         case '=':
         case '+':
         case '-':

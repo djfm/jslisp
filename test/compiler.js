@@ -1,11 +1,31 @@
 /* global describe, it */
 import chai from 'chai'; chai.should();
+import js_beautify from 'js-beautify';
 
 import jslisp from '../src/index';
 
+chai.use(function (chai) {
+  var Assertion = chai.Assertion;
+  Assertion.addMethod('jsEqual', function (rawExpectedCode) {
+      const opts = {
+          preserve_newlines: false
+      };
+      const actualCode = js_beautify(this._obj, opts);
+      const expectedCode = js_beautify(rawExpectedCode, opts);
+      this.assert(
+          actualCode === expectedCode,
+          "expected #{act} to be the same code as #{exp}",
+          "expected #{act} to not be the same code as #{exp}",
+          expectedCode,
+          actualCode,
+          true
+      );
+  });
+});
+
 describe('The compiler', function () {
     it('should compile the hello world', function () {
-        jslisp.compile('(log "hello world")').should.equal('console.log("hello world");');
+        jslisp.compile('(log "hello world")').should.jsEqual('console.log("hello world");');
     });
 
     it('should compile a simple if statement', function () {
@@ -64,6 +84,10 @@ describe('The compiler', function () {
 );
     });
 
+    it('should evaluate an iife', function () {
+        jslisp.evaluate('((lambda x (+ x 1)) 1)').should.equal(2);
+    });
+
     it('should compile an equality test', function () {
         jslisp.compile('(= 1 3)').should.equal('(1 === 3)');
     });
@@ -77,13 +101,14 @@ describe('The compiler', function () {
     });
 
     it('should compile an assignment of a lambda', function () {
-        jslisp.compile('(let f (lambda x 42))').should.equal(
-`(function () {
-    var f = (function (x) {
-    return 42;
-});
-    return f;
-})()`);
+        jslisp.compile('(let f (lambda x 42))').should.jsEqual(`
+            (function () {
+                var f = (function (x) {
+                    return 42;
+                });
+                return f;
+            })()
+        `);
     });
 
     it('should evaluate the Fibonacci program', function () {
@@ -117,4 +142,32 @@ describe('The compiler', function () {
     it('but variables with the same name may exist in different scopes - applications', function () {
         jslisp.evaluate(`(let (+ (let x 4) (let x 5)))`).should.equal(9);
     });
+
+    describe('Macros', function () {
+        it('should define a trivial macro', function () {
+            jslisp.compile('(let eight (macro (+ 5 3)) (eight))').should.jsEqual(`
+                (function () {
+                    return 8;
+                })()
+            `);
+        });
+        xit('should define a macro that uses a regular function', function () {
+            const src = jslisp.compile(`(let
+                square (lambda x (* x x))
+                sixteen (macro (square 4))
+                (sixteen)
+            )`);
+            console.log(src);
+        });
+    });
 });
+
+/**
+
+(let switch
+    (macro pivot test branch otherTests
+        (if (test pivot) branch
+            (switch pivot otherTests))))
+
+(switch x (> 2) "some" (> 5) "many" _ "few")
+ */
