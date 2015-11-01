@@ -40,13 +40,6 @@ ${decls.join("\n")}
 })()`;
 }
 
-function compileBinaryOperation (ast, context) {
-    const operator = {
-        '=': '==='
-    }[ast[0]] || ast[0];
-    return `(${compileAST(ast[1], context.newScope())} ${operator} ${compileAST(ast[2], context.newScope())})`;
-}
-
 function compileLambda (ast, context) {
     const rawArgs = ast.slice(1, ast.length - 1);
     rawArgs.forEach(arg => {
@@ -80,7 +73,7 @@ function compileToken (token, context) {
     if (context.tokenType(token) === 'symbol') {
         return token;
     } if (/\d+/.exec(token)) {
-        return token;
+        return parseInt(token, 10);
     } else {
         return JSON.stringify(token);
     }
@@ -88,8 +81,8 @@ function compileToken (token, context) {
 
 function compileApplication (ast, context) {
     const args = ast.slice(1).map(arg => {
-        return compileAST(arg, context);
-    }).join(', ');
+        return compileAST(arg, context.newScope());
+    });
 
     if (context.symbolType(ast[0]) === 'macro') {
         return context.evalMacro(ast[0]);
@@ -100,8 +93,30 @@ function compileApplication (ast, context) {
         } else {
             app = compileAST(ast[0], context);
         }
-        return `${app}(${args})`;
+        return writeFunctionCall(app, args, context);
     }
+}
+
+function writeFunctionCall (app, args, context) {
+    if (typeof app === "string") {
+        const binOp = {
+            '=': '===',
+            '+':'+', '-':'-', '*':'*', '/':'/'
+        }[app];
+        if (binOp) {
+            return writeBinaryOperatorCall(binOp, args, context);
+        }
+    }
+    return `${app}(${args.join(', ')})`;
+}
+
+function writeBinaryOperatorCall (op, args, context) {
+    return `(${args[0]} ${op} ${args[1]})`;
+}
+
+function compileList (ast, context) {
+    const args = ast.slice(1);
+    return JSON.stringify(args);
 }
 
 export default function compileAST (ast, context) {
@@ -118,12 +133,8 @@ export default function compileAST (ast, context) {
             return compileLambda(ast, context);
         case 'macro':
             return compileMacro(ast, context);
-        case '=':
-        case '+':
-        case '-':
-        case '*':
-        case '/':
-            return compileBinaryOperation(ast, context);
+        case 'list':
+            return compileList(ast, context);
         case 'true':
             return head;
         default:

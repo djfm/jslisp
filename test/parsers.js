@@ -116,4 +116,16 @@ describe('A list parser', function () {
         listParser(`(def fib (
         ))`).getNode().should.deep.equal(['def', 'fib', []]);
     });
+
+    it('should add the quote operator as a "list" symbol in the immediately following list', function () {
+        listParser(`('(hello))`).getNode().should.deep.equal([['list', 'hello']]);
+    });
+
+    it('but a quote preceding an identifier is just a regular identifier', function () {
+        listParser(`(' hi)`).getNode().should.deep.equal(["'", "hi"]);
+    });
+
+    it('but a quote terminating a list is just a regular identifier', function () {
+        listParser(`(hi ')`).getNode().should.deep.equal(["hi", "'"]);
+    });
 });

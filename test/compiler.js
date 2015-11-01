@@ -88,6 +88,10 @@ describe('The compiler', function () {
         jslisp.evaluate('((lambda x (+ x 1)) 1)').should.equal(2);
     });
 
+    it('should evaluate an iife with 3 parameters', function () {
+        jslisp.evaluate('((lambda x y z (+ x (+ y z))) 1 2 3)').should.equal(6);
+    });
+
     it('should compile an equality test', function () {
         jslisp.compile('(= 1 3)').should.equal('(1 === 3)');
     });
@@ -143,11 +147,25 @@ describe('The compiler', function () {
         jslisp.evaluate(`(let (+ (let x 4) (let x 5)))`).should.equal(9);
     });
 
+    it('a quote operator should escape regular interpretation', function () {
+        jslisp.compile(`(let sum '(+ 1 2))`).should.jsEqual(`(function () {
+            var sum = ["+", "1", "2"];
+            return sum;
+        })()`);
+    });
+
     describe('Macros', function () {
         it('should define a trivial macro', function () {
             jslisp.compile('(let eight (macro (+ 5 3)) (eight))').should.jsEqual(`
                 (function () {
                     return 8;
+                })()
+            `);
+        });
+        it('should understand the quote operator to return literal code', function () {
+            jslisp.compile('(let eight (macro \'(+ 5 3)) (eight))').should.jsEqual(`
+                (function () {
+                    return (5 + 3);
                 })()
             `);
         });

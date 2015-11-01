@@ -1,3 +1,5 @@
+import compiler from './compiler';
+
 export default class CompilerContext {
     constructor (parentContext) {
         this._tokens = parentContext ? Object.create(parentContext._tokens) : {};
@@ -52,6 +54,10 @@ export default class CompilerContext {
 
         const toEval = `(function(){${compileTimeCode}})()`;
         /* jshint evil:true */
-        return eval(toEval);
+        const jslispCode = eval(toEval);
+
+        const jsCode = compiler(jslispCode, this);
+
+        return jsCode;
     }
 }
