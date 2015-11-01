@@ -151,13 +151,31 @@ describe('The compiler', function () {
                 })()
             `);
         });
-        xit('should define a macro that uses a regular function', function () {
+        it('should define a macro that uses a regular function', function () {
             const src = jslisp.compile(`(let
                 square (lambda x (* x x))
                 sixteen (macro (square 4))
                 (sixteen)
             )`);
-            console.log(src);
+            src.should.jsEqual(`(function () {
+                var square = (function (x) {
+                    return (x * x);
+                });
+                return 16;
+            })()`);
+        });
+        it('should be able to use functions defined after them in the same scope', function () {
+            const src = jslisp.compile(`(let
+                sixteen (macro (square 4))
+                square (lambda x (* x x))
+                (sixteen)
+            )`);
+            src.should.jsEqual(`(function () {
+                var square = (function (x) {
+                    return (x * x);
+                });
+                return 16;
+            })()`);
         });
     });
 });

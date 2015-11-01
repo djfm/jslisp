@@ -13,7 +13,7 @@ export default {
     },
     compile (str) {
         const ast = this.parse(str);
-        return compiler(ast, new Context());
+        return compiler(ast, new Context()).toString();
     },
     evaluate (str) {
         /* jshint evil:true */

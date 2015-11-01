@@ -20,9 +20,11 @@ function compileDeclaration (ast, context) {
         if (rhs.symbolType) {
             context.symbolType(toReturn, rhs.symbolType);
         }
-        if (rhs.symbolType === 'macro') {
+        if (rhs.symbolType === 'macro' || rhs.symbolType === 'lambda') {
             context.compileTimeDefine(varName, rhs.compiled);
-        } else {
+        }
+
+        if (rhs.symbolType !== 'macro') {
             decls.push(`    var ${varName} = ${rhs};`);
         }
     }
@@ -51,21 +53,22 @@ function compileLambda (ast, context) {
         context.tokenType(arg, 'symbol');
     });
     const args = rawArgs.join(', ');
-return `(function (${args}) {
+    const src  = `(function (${args}) {
     return ${compileAST(ast[ast.length - 1], context)};
 })`;
-}
-
-function compileMacro (ast, context) {
-    var src = compileLambda(ast, context);
-    const code = {
+    return {
         str: src,
         toString () {
             return this.str;
         },
-        symbolType: 'macro',
+        symbolType: 'lambda',
         compiled: src
     };
+}
+
+function compileMacro (ast, context) {
+    var code = compileLambda(ast, context);
+    code.symbolType = 'macro';
     return code;
 }
 
@@ -91,7 +94,12 @@ function compileApplication (ast, context) {
     if (context.symbolType(ast[0]) === 'macro') {
         return context.evalMacro(ast[0]);
     } else {
-        const app = compileAST(ast[0], context);
+        let app;
+        if (typeof ast[0] === 'string') {
+            app = ast[0];
+        } else {
+            app = compileAST(ast[0], context);
+        }
         return `${app}(${args})`;
     }
 }

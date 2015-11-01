@@ -38,12 +38,20 @@ export default class CompilerContext {
     }
 
     compileTimeDefine (varName, srcCode) {
-        /* jshint evil:true */
-        this._compileTimeScope[varName] = eval(srcCode);
+        this._compileTimeScope[varName] = srcCode;
         return this;
     }
 
     evalMacro (macroName) {
-        return this._compileTimeScope[macroName]();
+        var compileTimeCode = '';
+        for (let varName in this._compileTimeScope) {
+            var code = this._compileTimeScope[varName];
+            compileTimeCode += `var ${varName} = ${code};\n`;
+        }
+        compileTimeCode += `return ${macroName}();`;
+
+        const toEval = `(function(){${compileTimeCode}})()`;
+        /* jshint evil:true */
+        return eval(toEval);
     }
 }
