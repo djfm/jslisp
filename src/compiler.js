@@ -110,11 +110,11 @@ function writeFunctionCall (app, args, context) {
     return `${app}(${args.join(', ')})`;
 }
 
-function writeBinaryOperatorCall (op, args, context) {
+function writeBinaryOperatorCall (op, args) {
     return `(${args[0]} ${op} ${args[1]})`;
 }
 
-function compileList (ast, context) {
+function compileList (ast) {
     const args = ast.slice(1);
     return JSON.stringify(args);
 }
