@@ -195,6 +195,13 @@ describe('The compiler', function () {
                 return 16;
             })()`);
         });
+        xit('should be able to define a shorthand notation for lambdas', function () {
+            const src = jslisp.compile(`
+                    (let
+                        \\ (macro args '(lambda @(pop args)))
+                        ((\\ x y (+ x y)) 3 4)
+            )`);
+        });
     });
 });
 
