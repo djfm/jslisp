@@ -25,15 +25,15 @@ chai.use(function (chai) {
 
 describe('The compiler', function () {
     it('should compile the hello world', function () {
-        jslisp.compile('(log "hello world")').should.jsEqual('console.log("hello world");');
+        jslisp.compile('(log "hello world")').should.jsEqual('console.log("hello world")');
     });
 
     it('should compile a simple if statement', function () {
-        jslisp.compile('(if true yay nay)').should.equal(`(true ? "yay" : "nay")`);
+        jslisp.compile('(if true yay nay)').should.equal(`(true ? yay : nay)`);
     });
 
     it('should evaluate a simple if statement', function () {
-        jslisp.evaluate('(if true yay nay)').should.equal("yay");
+        jslisp.evaluate('(if true "yay" "nay")').should.equal("yay");
     });
 
     it('should compile a variable declaration', function () {
@@ -149,7 +149,7 @@ describe('The compiler', function () {
 
     it('a quote operator should escape regular interpretation', function () {
         jslisp.compile(`(let sum '(+ 1 2))`).should.jsEqual(`(function () {
-            var sum = ["+", "1", "2"];
+            var sum = [{"kind": "identifier", "value": "+"}, 1, 2];
             return sum;
         })()`);
     });
@@ -163,7 +163,7 @@ describe('The compiler', function () {
             `);
         });
         it('should understand the quote operator to return literal code', function () {
-            jslisp.compile('(let eight (macro \'(+ 5 3)) (eight))').should.jsEqual(`
+            jslisp.compile(`(let eight (macro '(+ 5 3)) (eight))`).should.jsEqual(`
                 (function () {
                     return (5 + 3);
                 })()

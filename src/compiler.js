@@ -1,111 +1,88 @@
-function isList (ast) {
-    return Object.prototype.toString.call(ast) === "[object Array]";
-}
-
-function compileRValue (ast, context) {
-    if (isList(ast)) {
-        return compileAST(ast, context);
-    } else {
-        return ast.toString();
-    }
-}
-
 function compileDeclaration (ast, context) {
     const decls = [];
-    let i = 1, len = ast.length, toReturn, varName;
+    let i = 1, len = ast.getValue().length, toReturn, varName;
     for (; i < len - 1; i+=2) {
-        varName = toReturn = ast[i];
-        context.tokenType(toReturn, 'symbol');
-        const rhs = compileRValue(ast[i+1], context);
-        if (rhs.symbolType) {
-            context.symbolType(toReturn, rhs.symbolType);
-        }
-        if (rhs.symbolType === 'macro' || rhs.symbolType === 'lambda') {
-            context.compileTimeDefine(varName, rhs.compiled);
-        }
-
-        if (rhs.symbolType !== 'macro') {
+        const variable = ast.getValue()[i];
+        varName = toReturn = variable.getValue();
+        const rhs = compileAST(ast.getValue()[i+1], context);
+        const info = context.declare(variable, rhs);
+        if (info.getRole() !== 'macro') {
             decls.push(`    var ${varName} = ${rhs};`);
         }
     }
 
     if (i < len) {
         // if we have a body, it is to be returned by the block
-        toReturn = compileAST(ast[i], context);
+        toReturn = compileAST(ast.getValue()[i], context);
     }
 
-    return`(function () {
+    return ast.setCode(`(function () {
 ${decls.join("\n")}
     return ${toReturn};
-})()`;
+})()`);
 }
 
 function compileLambda (ast, context) {
-    const rawArgs = ast.slice(1, ast.length - 1);
-    rawArgs.forEach(arg => {
-        context.tokenType(arg, 'symbol');
-    });
+    const rawArgs = getArgs(ast, context, 1, ast.getValue().length - 1);
     const args = rawArgs.join(', ');
+    const body = compileAST(ast.getValue()[ast.getValue().length - 1], context);
     const src  = `(function (${args}) {
-    return ${compileAST(ast[ast.length - 1], context)};
+    return ${body};
 })`;
-    return {
-        str: src,
-        toString () {
-            return this.str;
-        },
-        symbolType: 'lambda',
-        compiled: src
-    };
+    return ast.setCode(src);
 }
 
 function compileMacro (ast, context) {
-    var code = compileLambda(ast, context);
-    code.symbolType = 'macro';
-    return code;
+    return compileLambda(ast, context).setRole('macro');
+}
+
+function getArgs (ast, context, from, to) {
+    return ast.getValue().slice(from || 1, to).map(node => {
+        return compileAST(node, context.newScope());
+    });
 }
 
 function compileIf (ast, context) {
-    return `(${compileAST(ast[1], context)} ? ${compileAST(ast[2], context)} : ${compileAST(ast[3], context)})`;
+    const args = getArgs(ast, context);
+    return ast.setCode(`(${args[0]} ? ${args[1]} : ${args[2]})`);
 }
 
-function compileToken (token, context) {
-    if (context.tokenType(token) === 'symbol') {
-        return token;
-    } if (/\d+/.exec(token)) {
-        return parseInt(token, 10);
+function compileToken (token) {
+    if (token.getKind() === 'identifier') {
+        return token.setCode(token.getValue());
     } else {
-        return JSON.stringify(token);
+        return token.setCode(JSON.stringify(token.getValue()));
     }
 }
 
 function compileApplication (ast, context) {
-    const args = ast.slice(1).map(arg => {
-        return compileAST(arg, context.newScope());
-    });
+    const args = getArgs(ast, context);
+    const head = ast.getValue()[0];
+    const info = context.getNodeInfo(head);
 
-    if (context.symbolType(ast[0]) === 'macro') {
-        return context.evalMacro(ast[0]);
+    if (info.getRole() === 'macro') {
+        return context.evalMacro(head);
     } else {
-        let app;
-        if (typeof ast[0] === 'string') {
-            app = ast[0];
+        let appCode;
+        if (head.getKind() === 'identifier') {
+            appCode = head.getValue();
+            if (appCode === 'log') {
+                appCode = 'console.log';
+            }
         } else {
-            app = compileAST(ast[0], context);
+            appCode = compileAST(head, context);
         }
-        return writeFunctionCall(app, args, context);
+        return ast.setCode(writeFunctionCall(appCode, args, context));
     }
 }
 
 function writeFunctionCall (app, args, context) {
-    if (typeof app === "string") {
-        const binOp = {
-            '=': '===',
-            '+':'+', '-':'-', '*':'*', '/':'/'
-        }[app];
-        if (binOp) {
-            return writeBinaryOperatorCall(binOp, args, context);
-        }
+    const binOp = {
+        '=': '===',
+        '+':'+', '-':'-', '*':'*', '/':'/'
+    }[app];
+    if (binOp) {
+        return writeBinaryOperatorCall(binOp, args, context);
     }
     return `${app}(${args.join(', ')})`;
 }
@@ -115,33 +92,37 @@ function writeBinaryOperatorCall (op, args) {
 }
 
 function compileList (ast) {
-    const args = ast.slice(1);
-    return JSON.stringify(args);
+    const args = ast.getValue().slice(1).map(node => {
+        return node.toJS();
+    });
+    return ast.setCode(JSON.stringify(args));
 }
 
 export default function compileAST (ast, context) {
-    const head = isList(ast) ? ast[0] : ast;
-
-    switch (head) {
-        case 'log':
-            return 'console.log(' + JSON.stringify(ast[1]) + ');';
-        case 'if':
-            return compileIf(ast, context);
-        case 'let':
-            return compileDeclaration(ast, context);
-        case 'lambda':
-            return compileLambda(ast, context);
-        case 'macro':
-            return compileMacro(ast, context);
-        case 'list':
-            return compileList(ast, context);
-        case 'true':
-            return head;
-        default:
-            if (!isList(ast)) {
-                return compileToken(head, context);
-            } else {
-                return compileApplication(ast, context);
+    if (ast.getKind() === 'list') {
+        const head = ast.getValue()[0];
+        if (head.getKind() === 'identifier') {
+            const identifier = head.getValue();
+            switch (identifier) {
+                case 'if':
+                    return compileIf(ast, context);
+                case 'let':
+                    return compileDeclaration(ast, context);
+                case 'lambda':
+                    return compileLambda(ast, context);
+                case 'macro':
+                    return compileMacro(ast, context);
+                case 'list':
+                    return compileList(ast, context);
+                case 'true':
+                    return head;
+                default:
+                    return compileApplication(ast, context);
             }
+        } else {
+            return compileApplication(ast, context);
+        }
+    } else {
+        return compileToken(ast, context);
     }
 }

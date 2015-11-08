@@ -6,7 +6,14 @@ import listParser       from '../lib/parsers/list-parser';
 import tokenParser      from '../lib/parsers/token-parser';
 import regExpParser     from '../lib/parsers/regexp-parser';
 
-describe.only('The parsers', function () {
+function id (value) {
+    return {
+        kind: "identifier",
+        value
+    };
+}
+
+describe('The parsers', function () {
     describe('A string parser', function () {
         it('should recognize a simple string', function () {
             const node = stringParser(`"hello"`).getNode();
@@ -89,15 +96,15 @@ describe.only('The parsers', function () {
         });
 
         it('should recognize a list containing a single token', function () {
-            listParser(`(hello)`).getNode().toJS().should.deep.equal(['hello']);
+            listParser(`(hello)`).getNode().toJS().should.deep.equal([id('hello')]);
         });
 
         it('should recognize a list containing 2 tokens', function () {
-            listParser(`(hello world)`).getNode().toJS().should.deep.equal(['hello', 'world']);
+            listParser(`(hello world)`).getNode().toJS().should.deep.equal([id('hello'), id('world')]);
         });
 
         it('should recognize a list containing a string and a token', function () {
-            listParser(`("hello" world)`).getNode().toJS().should.deep.equal(['hello', 'world']);
+            listParser(`("hello" world)`).getNode().toJS().should.deep.equal(['hello', id('world')]);
         });
 
         it('should recognize a list containing the empty list', function () {
@@ -110,9 +117,9 @@ describe.only('The parsers', function () {
 
         it('should recognize a more complex nested list', function () {
             listParser(`(a b c ("d" e   (f "g")))`).getNode().toJS().should.deep.equal([
-                'a', 'b', 'c', [
-                    'd', 'e', [
-                        'f', 'g'
+                id('a'), id('b'), id('c'), [
+                    'd', id('e'), [
+                        id('f'), 'g'
                     ]
                 ]
             ]);
@@ -120,19 +127,19 @@ describe.only('The parsers', function () {
 
         it('should recognize something with a line break at the end of the list', function () {
             listParser(`(def fib (
-            ))`).getNode().toJS().should.deep.equal(['def', 'fib', []]);
+            ))`).getNode().toJS().should.deep.equal([id('def'), id('fib'), []]);
         });
 
         it('should add the quote operator as a "list" symbol in the immediately following list', function () {
-            listParser(`('(hello))`).getNode().toJS().should.deep.equal([['list', 'hello']]);
+            listParser(`('(hello))`).getNode().toJS().should.deep.equal([[id('list'), id('hello')]]);
         });
 
         it('but a quote preceding an identifier is just a regular identifier', function () {
-            listParser(`(' hi)`).getNode().toJS().should.deep.equal(["'", "hi"]);
+            listParser(`(' hi)`).getNode().toJS().should.deep.equal([id("'"), id("hi")]);
         });
 
         it('but a quote terminating a list is just a regular identifier', function () {
-            listParser(`(hi ')`).getNode().toJS().should.deep.equal(["hi", "'"]);
+            listParser(`(hi ')`).getNode().toJS().should.deep.equal([id("hi"), id("'")]);
         });
     });
 });
