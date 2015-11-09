@@ -72,6 +72,8 @@ function compileApplication (ast, context) {
                 appCode = '(function (list) {return list[0];})';
             } else if (appCode === 'tail') {
                 appCode = '(function (list) {return list.slice(1);})';
+            } else if (appCode === 'cons') {
+                appCode = '(function (head, tail) {var nl = tail.slice(); nl.unshift(head); return nl;})';
             }
         } else {
             appCode = compileAST(head, context);

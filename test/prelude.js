@@ -9,4 +9,7 @@ describe('The Standard Library', function () {
     it('has a `tail` function to take the end of a list', function () {
         jslisp.evaluate(`(tail (list 1 2))`).should.deep.equal([2]);
     });
+    it('has a `cons` function to build a list from a head and a tail', function () {
+        jslisp.evaluate(`(cons 1 (list 2 3))`).should.deep.equal([1, 2, 3]);
+    });
 });
