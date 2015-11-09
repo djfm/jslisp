@@ -68,6 +68,10 @@ function compileApplication (ast, context) {
             appCode = head.getValue();
             if (appCode === 'log') {
                 appCode = 'console.log';
+            } else if (appCode === 'head') {
+                appCode = '(function (list) {return list[0];})';
+            } else if (appCode === 'tail') {
+                appCode = '(function (list) {return list.slice(1);})';
             }
         } else {
             appCode = compileAST(head, context);
