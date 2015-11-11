@@ -154,6 +154,10 @@ describe('The compiler', function () {
         })()`);
     });
 
+    it('should compile code with non-JS identifiers', function () {
+        jslisp.evaluate(`(let \\\\ (+ 1 2) \\\\)`).should.equal(3);
+    });
+
     describe('Macros', function () {
         it('should define a trivial macro', function () {
             jslisp.compile('(let eight (macro (+ 5 3)) (eight))').should.jsEqual(`
@@ -162,12 +166,18 @@ describe('The compiler', function () {
                 })()
             `);
         });
-        it('should understand the quote operator to return literal code', function () {
+        it('should understand the quote operator to return literal code - lists', function () {
             jslisp.compile(`(let eight (macro '(+ 5 3)) (eight))`).should.jsEqual(`
                 (function () {
                     return (5 + 3);
                 })()
             `);
+        });
+        it('should understand the quote operator to return literal code - identifier', function () {
+            jslisp.compile(`(let hi 'world)`).should.jsEqual(`(function () {
+                var hi = {"kind": "identifier", "value": "world"};
+                return hi;
+            })()`);
         });
         it('should define a macro that uses a regular function', function () {
             const src = jslisp.compile(`(let
@@ -195,12 +205,17 @@ describe('The compiler', function () {
                 return 16;
             })()`);
         });
-        xit('should be able to define a shorthand notation for lambdas', function () {
-            const src = jslisp.compile(`
+        it('should be able to define a shorthand notation for lambdas', function () {
+            const src = `
                     (let
-                        \\ (macro args '(lambda @(pop args)))
+                        \\ (macro args (cons 'lambda args))
                         ((\\ x y (+ x y)) 3 4)
-            )`);
+            )`;
+            jslisp.compile(src).should.jsEqual(`(function () {
+                return (function (x, y) { return (x + y); })(3, 4);
+            })()`);
+
+            jslisp.evaluate(src).should.equal(7);
         });
     });
 });

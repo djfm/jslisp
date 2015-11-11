@@ -134,8 +134,12 @@ describe('The parsers', function () {
             listParser(`('(hello))`).getNode().toJS().should.deep.equal([[id('list'), id('hello')]]);
         });
 
-        it('but a quote preceding an identifier is just a regular identifier', function () {
-            listParser(`(' hi)`).getNode().toJS().should.deep.equal([id("'"), id("hi")]);
+        it('but a quote preceding an identifier quotes the identifier', function () {
+            listParser(`(' hi)`).getNode().toJS().should.deep.equal([[id("quote"), id("hi")]]);
+        });
+
+        it('but a quote preceding an identifier without whitespace also quotes the identifier', function () {
+            listParser(`('hi)`).getNode().toJS().should.deep.equal([[id("quote"), id("hi")]]);
         });
 
         it('but a quote terminating a list is just a regular identifier', function () {

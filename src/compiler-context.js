@@ -7,12 +7,11 @@ export default class CompilerContext {
     }
 
     declare (varNode, code) {
-        const varName = varNode.getValue();
+        const varName = varNode.getCode();
 
         if (varName in this._scope) {
             throw new Error(`Cannot redeclare '${varName}'.`);
         }
-
         this._scope[varName] = code;
 
         return this.getNodeInfo(varNode);
@@ -25,7 +24,7 @@ export default class CompilerContext {
         let srcObj = ast;
 
         if (ast.getKind() === 'identifier') {
-            const identifier = ast.getValue();
+            const identifier = ast.getCode();
             if (identifier in this._scope) {
                 srcObj = this._scope[identifier];
             }
@@ -41,11 +40,15 @@ export default class CompilerContext {
         return new CompilerContext(this);
     }
 
-    evalMacro (macro) {
+    evalMacro (macro, rawArgs) {
         let macroName;
+        const args = rawArgs.map(arg => {
+            return arg.toJS();
+        });
+        const argsCode = JSON.stringify(args);
 
         if (macro.getKind() === 'identifier') {
-            macroName = macro.getValue();
+            macroName = macro.getCode();
         } else {
             throw new Error(`NIY: calling evalMacro on a non-identifier.`);
         }
@@ -54,8 +57,7 @@ export default class CompilerContext {
             var code = this._scope[varName];
             compileTimeCode += `var ${varName} = ${code};\n`;
         }
-        compileTimeCode += `return ${macroName}();`;
-
+        compileTimeCode += `return ${macroName}(${argsCode});`;
 
         const toEval = `(function(){${compileTimeCode}})()`;
         /* jshint evil:true */
