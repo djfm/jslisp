@@ -225,7 +225,7 @@ describe('The compiler', function () {
                                 x (head args)
                                 y (head (tail args))
                                 s (+ x y)
-                                '(list (eval s) (eval s))
+                                '(list :s :s)
                             ))
                         (listSum 1 3))
             `;

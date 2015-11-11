@@ -142,6 +142,14 @@ describe('The parsers', function () {
             listParser(`('hi)`).getNode().toJS().should.deep.equal([[id("quote"), id("hi")]]);
         });
 
+        it('and a colon is syntactic sugar for eval', function () {
+            listParser(`(: hi)`).getNode().toJS().should.deep.equal([[id("eval"), id("hi")]]);
+        });
+
+        it('and a colon is syntactic sugar for eval, even when starting an identifier', function () {
+            listParser(`(:hi)`).getNode().toJS().should.deep.equal([[id("eval"), id("hi")]]);
+        });
+
         it('but a quote terminating a list is just a regular identifier', function () {
             listParser(`(hi ')`).getNode().toJS().should.deep.equal([id("hi"), id("'")]);
         });
