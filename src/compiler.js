@@ -1,3 +1,5 @@
+import astNode from '../lib/ast-node';
+
 function compileDeclaration (ast, context) {
     const decls = [];
     let i = 1, len = ast.getValue().length, toReturn, varName;
@@ -110,11 +112,30 @@ function writeBinaryOperatorCall (op, args) {
     return `(${args[0]} ${op} ${args[1]})`;
 }
 
-function compileList (ast) {
-    const args = ast.getValue().slice(1).map(node => {
-        return node.toJS();
-    });
-    return ast.setCode(JSON.stringify(args));
+function quote (ast, context) {
+    if (ast.getKind() === 'list') {
+        const head = ast.getValue()[0];
+        if (head.getKind() === 'identifier' && head.getValue() === 'eval') {
+            return compileAST(ast.getValue()[1], context);
+        } else {
+            return '[' + ast.getValue().map(function (v) {
+                return quote(v, context);
+            }).join(', ') + ']';
+        }
+    } else if (ast.getKind() === 'identifier') {
+        if (ast.getValue()[0] === ':') {
+            return ast.getValue().substring(1);
+        } else {
+            return JSON.stringify({kind: "identifier", value: ast.getValue()});
+        }
+    } else {
+        return ast.getValue();
+    }
+}
+
+function compileList (ast, context) {
+    const args = quote(astNode(ast.getValue().slice(1), 'list', []), context);
+    return ast.setCode(args);
 }
 
 function compileQuote (ast) {

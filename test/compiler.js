@@ -217,6 +217,22 @@ describe('The compiler', function () {
 
             jslisp.evaluate(src).should.equal(7);
         });
+        it('should evaluate escaped expressions', function () {
+            const src = `
+                (let listSum
+                        (macro args
+                            (let
+                                x (head args)
+                                y (head (tail args))
+                                s (+ x y)
+                                '(list (eval s) (eval s))
+                            ))
+                        (listSum 1 3))
+            `;
+            jslisp.compile(src).should.jsEqual(`(function () {
+                return [4, 4];
+            })()`);
+        });
     });
 });
 

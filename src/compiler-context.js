@@ -58,7 +58,6 @@ export default class CompilerContext {
             compileTimeCode += `var ${varName} = ${code};\n`;
         }
         compileTimeCode += `return ${macroName}(${argsCode});`;
-
         const toEval = `(function(){${compileTimeCode}})()`;
         /* jshint evil:true */
         const jsRepresentation = eval(toEval);
