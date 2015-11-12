@@ -118,14 +118,11 @@ describe('The compiler', function () {
     it('should evaluate the Fibonacci program', function () {
         const src =
         `(let fib (lambda n
-                (if (= n 0)
-                    0
-                    (if (= n 1)
-                        1
-                        (+ (fib (- n 1)) (fib (- n 2)))
-                    )
-                )
-            )
+            (if (= n 0)
+                0
+                (if (= n 1)
+                    1
+                    (+ (fib (- n 1)) (fib (- n 2))))))
             (fib 4)
         )`;
         jslisp.evaluate(src).should.equal(3);
@@ -220,13 +217,12 @@ describe('The compiler', function () {
         it('should evaluate escaped expressions', function () {
             const src = `
                 (let listSum
-                        (macro args
-                            (let
-                                x (head args)
-                                y (head (tail args))
-                                s (+ x y)
-                                '(list :s :s)
-                            ))
+                    (macro args
+                        (let
+                            x (head args)
+                            y (head (tail args))
+                            s (+ x y)
+                            '(list :s :s)))
                         (listSum 1 3))
             `;
             jslisp.compile(src).should.jsEqual(`(function () {
