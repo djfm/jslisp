@@ -100,5 +100,13 @@ describe('A StreamBuilder', function () {
                 len: 2
             });
         });
+        it('should build a node hierarchy that keeps track of source code', function () {
+            const srcSb = streamBuilder("ab");
+            const sb = streamBuilder().setSourceStream(srcSb);
+            srcSb.takeOne();
+            srcSb.takeOne();
+            sb.push("AB");
+            sb.getNode(0).getSource().should.equal("ab");
+        });
     });
 });
