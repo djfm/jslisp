@@ -19,15 +19,22 @@ describe('A StreamBuilder', function () {
         sb.nodeCount().should.equal(1);
     });
 
-    it('should produce a stream that is consumed value by value', function () {
-        const sb = streamBuilder();
-        sb.push("a");
-        sb.takeOne().should.equal("a");
-        sb.eos().should.equal(true);
+    describe('produces a stream that', function () {
+        it('can be consumed value by value', function () {
+            const sb = streamBuilder();
+            sb.push("a");
+            sb.takeOne().should.equal("a");
+            sb.eos().should.equal(true);
+        });
+        it('can be peeked at without changing position', function () {
+            const sb = streamBuilder();
+            sb.push("a");
+            sb.peekOne().should.equal("a");
+            sb.eos().should.equal(false);
+        });
     });
 
     describe('built from a string', function () {
-
         it('should accept a string as input and split it into char nodes', function () {
             const sb = streamBuilder("hello");
             sb.nodeCount().should.equal(5);
@@ -60,7 +67,6 @@ describe('A StreamBuilder', function () {
                 len: 1
             });
         });
-
     });
 
 });
