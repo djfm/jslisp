@@ -46,27 +46,59 @@ describe('A StreamBuilder', function () {
             sb.getNode(0).getLocation().should.deep.equal({
                 row: 1,
                 col: 1,
+                endRow: 1,
+                endCol: 1,
                 len: 1
             });
 
             sb.getNode(1).getLocation().should.deep.equal({
                 row: 1,
                 col: 2,
+                endRow: 1,
+                endCol: 2,
                 len: 1
             });
 
             sb.getNode(2).getLocation().should.deep.equal({
                 row: 2,
                 col: 1,
+                endRow: 2,
+                endCol: 1,
                 len: 1
             });
 
             sb.getNode(7).getLocation().should.deep.equal({
                 row: 4,
                 col: 2,
+                endRow: 4,
+                endCol: 2,
                 len: 1
             });
         });
     });
 
+    describe('linked with a source stream', function () {
+        it('should automatically build the node hierarchy according to nodes taken', function () {
+            const srcSb = streamBuilder("ab");
+            const sb = streamBuilder().setSourceStream(srcSb);
+            srcSb.takeOne();
+            srcSb.takeOne();
+            sb.push("AB");
+            sb.getNode(0).getChildren().length.should.equal(2);
+        });
+        it('should build a node hierarchy that keeps track of node locations', function () {
+            const srcSb = streamBuilder("ab");
+            const sb = streamBuilder().setSourceStream(srcSb);
+            srcSb.takeOne();
+            srcSb.takeOne();
+            sb.push("AB");
+            sb.getNode(0).getLocation().should.deep.equal({
+                row: 1,
+                col: 1,
+                endRow: 1,
+                endCol: 2,
+                len: 2
+            });
+        });
+    });
 });
