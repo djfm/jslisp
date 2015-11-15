@@ -5,7 +5,8 @@ chai.should();
 import parserRunner     from '../lib/parserRunner';
 import whitespaceParser from '../lib/parsers/whitespace';
 import commentParser    from '../lib/parsers/comment';
-import stringParser    from '../lib/parsers/string';
+import stringParser     from '../lib/parsers/string';
+import listParser       from '../lib/parsers/list';
 
 describe('The Parsers', function () {
     describe('A Whitespace Parser', function () {
@@ -96,6 +97,26 @@ describe('The Parsers', function () {
             error.col.should.equal(3);
             stream.getPos().should.equal(0, "A failed parse should not advance the stream.");
             stream.nodeCount().should.equal(3, "A failed parse should not change the stream.");
+        });
+    });
+
+    describe('A List Parser', function () {
+        it('should parse a simple list', function () {
+            const runner = parserRunner(`(hello)`);
+            runner.run(listParser);
+            const stream = runner.getStream();
+            stream.eos().should.equal(true, "stream should be at eos()");
+            stream.nodeCount().should.equal(1);
+            stream.getNode(0).getSource().should.equal(`(hello)`);
+        });
+        it('should parse a nested list', function () {
+            const runner = parserRunner(`(he(ll)o)`);
+            runner.run(listParser);
+            const stream = runner.getStream();
+            stream.eos().should.equal(true, "stream should be at eos()");
+            stream.nodeCount().should.equal(1);
+            stream.getNode(0).getSource().should.equal(`(he(ll)o)`);
+            stream.getNode(0).getNode(3).getSource().should.equal('(ll)');
         });
     });
 });
