@@ -119,5 +119,12 @@ describe('The Parsers', function () {
             stream.getNode(0).getNode(3).getSource().should.equal('(ll)');
             stream.getNode(0).getNode(3).getValue().length.should.equal(2);
         });
+        it('should produce an error if list is unterminated', function () {
+            const runner = parserRunner("(hello");
+            const error = runner.run(listParser);
+            error.message.should.equal('Unterminated list.');
+            error.row.should.equal(1);
+            error.col.should.equal(6);
+        });
     });
 });
