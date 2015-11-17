@@ -117,6 +117,7 @@ describe('The Parsers', function () {
             stream.nodeCount().should.equal(1);
             stream.getNode(0).getSource().should.equal(`(he(ll)o)`);
             stream.getNode(0).getNode(3).getSource().should.equal('(ll)');
+            stream.getNode(0).getNode(3).getValue().length.should.equal(2);
         });
     });
 });
