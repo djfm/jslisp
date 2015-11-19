@@ -7,7 +7,9 @@ import listParser       from '../lib/parsers/list';
 
 function wrapError (maybeError) {
     if (maybeError) {
-        throw new Error();
+        throw new Error(
+            `Error at (${maybeError.row},${maybeError.col}): ${maybeError.message}`
+        );
     }
 }
 

@@ -14,7 +14,7 @@ describe('The JSLISP Compiler', function () {
         it ('shoud error on unterminated list', function () {
             chai.expect(() => {
                 compiler("(+ 1 ");
-            }).to.throw();
+            }).to.throw('Error at (1,5): Unterminated list.');
         });
     });
 });
