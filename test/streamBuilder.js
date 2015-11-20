@@ -16,7 +16,7 @@ describe('A StreamReader', function () {
 
     it('should count nodes', function () {
         const writer = streamReader("a");
-        writer.nodeCount().should.equal(1);
+        writer.nodesCount().should.equal(1);
     });
 
     describe('produces a stream that', function () {
@@ -35,7 +35,7 @@ describe('A StreamReader', function () {
     describe('built from a string', function () {
         it('should accept a string as input and split it into char nodes', function () {
             const writer = streamReader("hello");
-            writer.nodeCount().should.equal(5);
+            writer.nodesCount().should.equal(5);
         });
 
         it('should keep track of line and column information', function () {

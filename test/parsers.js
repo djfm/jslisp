@@ -15,7 +15,7 @@ describe('The Parsers', function () {
             runner.run(whitespaceParser);
             const stream = runner.getStream();
             stream.eos().should.equal(true, "stream should be at eos()");
-            stream.nodeCount().should.equal(1);
+            stream.nodesCount().should.equal(1);
             stream.getNode(0).getSource().should.equal("  ");
             stream.getNode(0).getChildren().length.should.equal(2);
         });
@@ -24,7 +24,7 @@ describe('The Parsers', function () {
             runner.run(whitespaceParser);
             const stream = runner.getStream();
             stream.eos().should.equal(false, "stream should not be at eos()");
-            stream.nodeCount().should.equal(2);
+            stream.nodesCount().should.equal(2);
             stream.getNode(0).getSource().should.equal("  ");
             stream.getNode(1).getSource().should.equal("a");
         });
@@ -96,7 +96,7 @@ describe('The Parsers', function () {
             error.row.should.equal(1);
             error.col.should.equal(3);
             stream.getPos().should.equal(0, "A failed parse should not advance the stream.");
-            stream.nodeCount().should.equal(3, "A failed parse should not change the stream.");
+            stream.nodesCount().should.equal(3, "A failed parse should not change the stream.");
         });
     });
 
@@ -106,7 +106,7 @@ describe('The Parsers', function () {
             runner.run(listParser);
             const stream = runner.getStream();
             stream.eos().should.equal(true, "stream should be at eos()");
-            stream.nodeCount().should.equal(1);
+            stream.nodesCount().should.equal(1);
             stream.getNode(0).getSource().should.equal(`(hello)`);
         });
         it('should parse a nested list', function () {
@@ -114,7 +114,7 @@ describe('The Parsers', function () {
             runner.run(listParser);
             const stream = runner.getStream();
             stream.eos().should.equal(true, "stream should be at eos()");
-            stream.nodeCount().should.equal(1);
+            stream.nodesCount().should.equal(1);
             stream.getNode(0).getSource().should.equal(`(he(ll)o)`);
             stream.getNode(0).getNode(3).getSource().should.equal('(ll)');
             stream.getNode(0).getNode(3).getValue().length.should.equal(2);
@@ -135,7 +135,7 @@ describe('The Parser Runner', function () {
             const runner = parserRunner("012345(hello)(world)");
             const error = runner.runAtAllStartingPositions(listParser);
             chai.expect(error).to.equal(null);
-            runner.getStream().nodeCount().should.equal(8);
+            runner.getStream().nodesCount().should.equal(8);
             runner.getStream().getNode(6).getSource().should.equal("(hello)");
             runner.getStream().getNode(7).getSource().should.equal("(world)");
             runner.getStream().getPos().should.equal(0);
