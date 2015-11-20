@@ -18,18 +18,20 @@ export default function compile (jslispSourceCode) {
 
     // first parse strings because they may contain
     // syntactically significant tokens
-    runner.run(stringParser);
+    runner.runAtAllStartingPositions(stringParser);
 
     // then parse comments, it is OK to have
     // strings in them cuz code may use them
-    runner.run(commentParser);
+    runner.runAtAllStartingPositions(commentParser);
 
     // we need to separate list items,
     // so group whitespace
-    runner.run(whitespaceParser);
+    runner.runAtAllStartingPositions(whitespaceParser);
 
     // Now we can safely parse all list structures
     wrapError(
-        runner.run(listParser)
+        runner.runAtAllStartingPositions(listParser, {
+            unterminatedPatternIsAnError: true
+        })
     );
 }
