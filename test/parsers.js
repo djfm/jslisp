@@ -128,3 +128,17 @@ describe('The Parsers', function () {
         });
     });
 });
+
+describe('The Parser Runner', function () {
+    describe('can run a parser at all stream positions', function () {
+        it('can parse a sequence of lists using runAtAllStartingPositions', function () {
+            const runner = parserRunner("012345(hello)(world)");
+            const error = runner.runAtAllStartingPositions(listParser);
+            chai.expect(error).to.equal(null);
+            runner.getStream().nodeCount().should.equal(8);
+            runner.getStream().getNode(6).getSource().should.equal("(hello)");
+            runner.getStream().getNode(7).getSource().should.equal("(world)");
+            runner.getStream().getPos().should.equal(0);
+        });
+    });
+});
