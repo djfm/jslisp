@@ -16,5 +16,10 @@ describe('The JSLISP Compiler', function () {
                 compiler("(+ 1 ");
             }).to.throw('Error at (1,5): Unterminated list.');
         });
+        it ('shoud error on unbalanced list', function () {
+            chai.expect(() => {
+                compiler("(+ 1))");
+            }).to.throw('Error at (1,6): Unexpected end-of-list symbol.');
+        });
     });
 });
