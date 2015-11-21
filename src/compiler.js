@@ -4,6 +4,8 @@ import whitespaceParser from '../lib/parsers/whitespace';
 import commentParser    from '../lib/parsers/comment';
 import stringParser     from '../lib/parsers/string';
 import listParser       from '../lib/parsers/list';
+import tokenParser      from '../lib/parsers/token';
+import node             from '../lib/node';
 
 function wrapError (maybeError) {
     if (maybeError) {
@@ -28,10 +30,15 @@ export default function compile (jslispSourceCode) {
     // so group whitespace
     runner.runAtAllStartingPositions(whitespaceParser);
 
+    runner.runAtAllStartingPositions(tokenParser);
+
     // Now we can safely parse all list structures
     wrapError(
         runner.runAtAllStartingPositions(listParser, {
             unterminatedPatternIsAnError: true
         })
     );
+
+    const stream = runner.getStream();
+    return node(null, stream._arr);
 }

@@ -6,6 +6,11 @@ import compiler from '../src/compiler';
 
 describe('The JSLISP Compiler', function () {
     describe('recognizes wellformed code', function () {
+        it('should compile a token', function () {
+            const node = compiler("hello").getNode(0);
+            node.getSource().should.equal("hello");
+            node.getTokenType().should.equal("identifier");
+        });
         it('should compile a basic arithmetic operation', function () {
             compiler("(+ 1 2)");
         });
