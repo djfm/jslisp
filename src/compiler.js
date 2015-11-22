@@ -47,7 +47,7 @@ export default function compile (jslispSourceCode) {
 
     const stream = runner.getStream();
     if (stream._arr.length > 1) {
-        return node(null, stream._arr);
+        return node(null, stream._arr).setTokenType("list");
     } else {
         return stream._arr[0];
     }

@@ -41,8 +41,8 @@ describe('The JSLISP Compiler', function () {
             node.getValue().should.equal("hello");
             node.getTokenType().should.equal("string");
         });
-        it('should compile a basic arithmetic operation', function () {
-            compiler("(+ 1 2)");
+        it('should compile a basic list', function () {
+            compiler("(+ 1 2)").getTokenType().should.equal("list");
         });
     });
     describe('produces friendly error messages', function () {
@@ -65,10 +65,12 @@ describe('The JSLISP Compiler', function () {
     describe('always yields a list', function () {
         it('yields a list when the top level form IS NOT an explicit list', function () {
             const ast = compiler("+ 1 2");
+            ast.getTokenType().should.equal('list');
             ast.getNode(0).getSource().should.equal("+");
         });
         it('yields a list when the top level form IS an explicit list', function () {
             const ast = compiler("(+ 1 2)");
+            ast.getTokenType().should.equal('list');
             ast.getNode(0).getSource().should.equal("(");
         });
     });
