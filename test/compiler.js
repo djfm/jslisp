@@ -44,8 +44,14 @@ describe('The JSLISP Compiler', function () {
             node.getValue().should.equal("hello");
             node.getTokenType().should.equal("string");
         });
-        it('should compile a basic list', function () {
-            compiler("(+ 1 2)").getTokenType().should.equal("list");
+        describe('compiles lists', function () {
+            it('should compile a basic list', function () {
+                compiler("(+ 1 2)").getTokenType().should.equal("list");
+            });
+            it('should strip whitespace and parens from list value', function () {
+                const node = compiler("(+ 1 2)");
+                node.getValue().length.should.equal(3);
+            });
         });
     });
     describe('produces friendly error messages', function () {
