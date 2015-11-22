@@ -18,9 +18,16 @@ function wrapError (maybeError) {
 export default function compile (jslispSourceCode) {
     const runner = parserRunner(jslispSourceCode);
 
+    const strict = {
+        unterminatedPatternIsAnError: true
+    };
+
     // first parse strings because they may contain
     // syntactically significant tokens
-    runner.runAtAllStartingPositions(stringParser);
+    wrapError(runner.runAtAllStartingPositions(
+        stringParser,
+        strict
+    ));
 
     // then parse comments, it is OK to have
     // strings in them cuz code may use them
@@ -33,11 +40,10 @@ export default function compile (jslispSourceCode) {
     runner.runAtAllStartingPositions(tokenParser);
 
     // Now we can safely parse all list structures
-    wrapError(
-        runner.runAtAllStartingPositions(listParser, {
-            unterminatedPatternIsAnError: true
-        })
-    );
+    wrapError(runner.runAtAllStartingPositions(
+        listParser,
+        strict
+    ));
 
     const stream = runner.getStream();
     return node(null, stream._arr);
