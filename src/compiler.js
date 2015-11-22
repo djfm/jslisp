@@ -1,54 +1,42 @@
-import parserRunner     from '../lib/parserRunner';
-
-import whitespaceParser from '../lib/parsers/whitespace';
-import commentParser    from '../lib/parsers/comment';
-import stringParser     from '../lib/parsers/string';
-import listParser       from '../lib/parsers/list';
-import tokenParser      from '../lib/parsers/token';
-import node             from '../lib/node';
-
-function wrapError (maybeError) {
-    if (maybeError) {
-        throw new Error(
-            `Error at (${maybeError.row},${maybeError.col}): ${maybeError.message}`
-        );
-    }
-}
+import lexer from './lexer';
 
 export default function compile (jslispSourceCode) {
-    const runner = parserRunner(jslispSourceCode);
+    return compileAST(lexer(jslispSourceCode));
+}
 
-    const strict = {
-        unterminatedPatternIsAnError: true
-    };
-
-    // first parse strings because they may contain
-    // syntactically significant tokens
-    wrapError(runner.runAtAllStartingPositions(
-        stringParser,
-        strict
-    ));
-
-    // then parse comments, it is OK to have
-    // strings in them cuz code may use them
-    runner.runAtAllStartingPositions(commentParser);
-
-    // we need to separate list items,
-    // so group whitespace
-    runner.runAtAllStartingPositions(whitespaceParser);
-
-    runner.runAtAllStartingPositions(tokenParser);
-
-    // Now we can safely parse all list structures
-    wrapError(runner.runAtAllStartingPositions(
-        listParser,
-        strict
-    ));
-
-    const stream = runner.getStream();
-    if (stream._arr.length > 1 || stream._arr[0].getTokenType() !== 'list') {
-        return node(null, stream._arr).setTokenType("list");
-    } else {
-        return stream._arr[0];
+function compileAST (ast) {
+    if (ast.getTokenType() === 'identifier') {
+        return compileIdentifier(ast);
+    } else if (ast.getTokenType() === 'constant') {
+        return compileConstant(ast);
+    } else if (ast.getTokenType() === 'string') {
+        // TODO
+    } else if (ast.getTokenType() === 'list') {
+        return compileFunctionCall(ast);
     }
+
+    return ast;
+}
+
+function compileIdentifier (ast) {
+    return ast.setCode(ast.getValue());
+}
+
+function compileConstant (ast) {
+    return ast.setCode(JSON.stringify(ast.getValue()));
+}
+
+function isBinaryOperator (node) {
+    const ops = {'+': true};
+    return ops[node.getValue()];
+}
+
+function compileFunctionCall (ast) {
+    const [head, ...rest] = ast.getValue().map(compileAST);
+
+    if (isBinaryOperator(head)) {
+        ast.setCode(`(${rest[0]} ${head} ${rest[1]})`);
+    }
+
+    return ast;
 }

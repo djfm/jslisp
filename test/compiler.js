@@ -88,4 +88,9 @@ describe('The JSLISP Compiler', function () {
             ast.getNode(0).getSource().should.equal("1");
         });
     });
+    describe('produces javascript code', function () {
+        it('should compile a simple sum', function () {
+            compiler('(+ 1 2)').getCode().should.equal('(1 + 2)');
+        });
+    });
 });
