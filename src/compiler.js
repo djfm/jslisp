@@ -46,5 +46,9 @@ export default function compile (jslispSourceCode) {
     ));
 
     const stream = runner.getStream();
-    return node(null, stream._arr);
+    if (stream._arr.length > 1) {
+        return node(null, stream._arr);
+    } else {
+        return stream._arr[0];
+    }
 }
