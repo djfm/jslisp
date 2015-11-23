@@ -92,5 +92,8 @@ describe('The JSLISP Compiler', function () {
         it('should compile a simple sum', function () {
             compiler('(+ 1 2)').getCode().should.equal('(1 + 2)');
         });
+        it('should compile an arithmetic operation', function () {
+            compiler('(* (+ 1 2) (- 4 (/ 1 2)))').getCode().should.equal('((1 + 2) * (4 - (1 / 2)))');
+        });
     });
 });

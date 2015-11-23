@@ -27,8 +27,8 @@ function compileConstant (ast) {
 }
 
 function isBinaryOperator (node) {
-    const ops = {'+': true};
-    return ops[node.getValue()];
+    const ops = ['+', '*', '-', '/'];
+    return ops.includes(node.getValue());
 }
 
 function compileFunctionCall (ast) {
